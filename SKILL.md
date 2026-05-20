@@ -13,49 +13,56 @@ If the binary path is not provided, locate it in this order:
 
 1. `AVITO_CLI_BIN`
 2. `avito` from `PATH`
-3. `~/.local/avito/avito`
-4. `./avito`
+3. `avito-personal-cli` from `PATH`
+4. `~/.local/avito/avito`
+5. `~/.local/avito/avito-personal-cli`
+6. `./avito`
+7. `./avito-personal-cli`
+
+After locating the executable, set `AVITO_BIN` to that path for the commands below.
 
 Users normally install the binary globally:
 
 ```sh
+git config --global url."ssh://git@github.com/".insteadOf "https://github.com/"
+GOPRIVATE=github.com/vasyza/avito-personal-cli \
+GONOPROXY=github.com/vasyza/avito-personal-cli \
+GONOSUMDB=github.com/vasyza/avito-personal-cli \
 go install github.com/vasyza/avito-personal-cli@latest
 ```
 
+The CLI source repository is private. The user must have GitHub access to `vasyza/avito-personal-cli`, and their SSH key must work with GitHub. The private-module environment variables are required so Go does not query the public module proxy or checksum database for the private module. This install creates a binary named `avito-personal-cli`.
+
 If no binary is found, ask the user to install it or provide `AVITO_CLI_BIN`.
 
-Use a local session path unless the user provides one:
+Use the binary's default session path unless the user provides `--session`. The default lives under the user's config directory, for example `~/.config/avito-cli/session.json` on Linux or macOS.
 
-```sh
-~/.local/avito/session.json
-```
-
-Keep copied curl commands, cookie exports, session files, and raw Avito output in ignored local paths such as `~/.local/avito/`.
+Keep copied curl commands, cookie exports, session files, and raw Avito output in ignored local paths such as `/tmp/avito/`.
 
 ## Basic Workflow
 
 Prepare a local workspace:
 
 ```sh
-mkdir -p ~/.local/avito/out
+mkdir -p /tmp/avito
 ```
 
 Import a session from a copied browser curl command, a single `Cookie:` header line, or a Netscape cookie export:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json session import --cookie-file ~/.local/avito/curl.txt
+"$AVITO_BIN" session import --cookie-file /tmp/avito/curl.txt
 ```
 
 Check the session:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json session check
+"$AVITO_BIN" session check
 ```
 
 Show redacted session metadata:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json session show
+"$AVITO_BIN" session show
 ```
 
 ## Common Commands
@@ -63,54 +70,54 @@ Show redacted session metadata:
 List dialogs:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialogs list --limit 20
+"$AVITO_BIN" dialogs list --limit 20
 ```
 
 Get one dialog:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog get '<channelId>'
+"$AVITO_BIN" dialog get '<channelId>'
 ```
 
 Read messages as JSON:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog messages '<channelId>' --limit 50
+"$AVITO_BIN" dialog messages '<channelId>' --limit 50
 ```
 
 Read messages as text:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog messages '<channelId>' --limit 50 --format text
+"$AVITO_BIN" dialog messages '<channelId>' --limit 50 --format text
 ```
 
 Write a Markdown transcript:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog transcript '<channelId>' --limit 100 --output ~/.local/avito/out/transcript.md
+"$AVITO_BIN" dialog transcript '<channelId>' --limit 100 --output /tmp/avito/transcript.md
 ```
 
 Fetch listing info:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json listing get '<itemId-or-url-or-path>'
+"$AVITO_BIN" listing get '<itemId-or-url-or-path>'
 ```
 
 Send a message:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog send '<channelId>' --text 'message'
+"$AVITO_BIN" dialog send '<channelId>' --text 'message'
 ```
 
 The binary should prompt before sending. Use `--yes` only when the user explicitly asks for non-interactive sending:
 
 ```sh
-"$AVITO_BIN" --session ~/.local/avito/session.json dialog send '<channelId>' --text 'message' --yes
+"$AVITO_BIN" dialog send '<channelId>' --text 'message' --yes
 ```
 
 ## Safety
 
-- Never commit `.local/`, session files, cookies, copied curl commands, or raw Avito responses.
+- Never commit session files, cookies, copied curl commands, or raw Avito responses.
 - Do not print full cookies or session JSON in final answers.
 - Do not send messages unless the user explicitly requested sending and the exact message text is known.
 - Prefer read-only checks first: `session check`, `dialogs list`, `dialog get`, `dialog messages`.
@@ -121,7 +128,7 @@ The binary should prompt before sending. Use `--yes` only when the user explicit
 Summarize command results in plain language. Link to generated local artifacts when useful, for example:
 
 ```text
-~/.local/avito/out/transcript.md
+/tmp/avito/transcript.md
 ```
 
 For dialogs/messages, report:
