@@ -1,0 +1,4 @@
+interface:
+  display_name: "Avito Personal CLI"
+  short_description: "Operate the Avito personal-account binary"
+  default_prompt: "Use $avito-personal-cli to operate the compiled Avito CLI binary with a local cookie session."
